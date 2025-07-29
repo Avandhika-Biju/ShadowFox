@@ -1,13 +1,13 @@
-# 📚 Books to Scrape – Web Scraper
+# Superstore Sales Analysis – Internship Project
 
-This Python script scrapes book titles, prices, and links from [https://books.toscrape.com](https://books.toscrape.com), a public website built for web scraping practice.
+This Jupyter notebook analyzes the Sample Superstore sales dataset to explore profitability trends and the impact of discounts and quantity sold.
 
-## 🔧 Features
+## Features:
+- Fiscal year analysis
+- Discount vs Profit visualization
+- Region- and category-wise breakdowns
+- Monthly sales trend
 
-- Extracts book titles, prices, and URLs
-- Saves data in both `.csv` and `.json` formats
-- Uses requests + BeautifulSoup
-
-## ▶️ How to Run
-
-1. Install dependencies:
+## How to Run:
+1. Install packages with `pip install -r requirements.txt`
+2. Launch the notebook `notebooks/01_superstore_analysis.ipynb`
