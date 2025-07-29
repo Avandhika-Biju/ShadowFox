@@ -1,81 +1,100 @@
-from words import get_random_word
+import tkinter as tk
+from tkinter import ttk
+from words import get_word_by_difficulty
 
-HANGMAN_PICS = [
-    """
-     +---+
-         |
-         |
-         |
-        ===""", """
-     +---+
-     O   |
-         |
-         |
-        ===""", """
-     +---+
-     O   |
-     |   |
-         |
-        ===""", """
-     +---+
-     O   |
-    /|   |
-         |
-        ===""", """
-     +---+
-     O   |
-    /|\\  |
-         |
-        ===""", """
-     +---+
-     O   |
-    /|\\  |
-    /    |
-        ===""", """
-     +---+
-     O   |
-    /|\\  |
-    / \\  |
-        ==="""
-]
+class HangmanGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Hangman Game")
+        self.root.geometry("400x500")
+        self.root.configure(bg="#f2f2f2")
 
-def display_progress(word, guessed_letters):
-    return ' '.join([letter if letter in guessed_letters else '_' for letter in word])
+        self.word = ""
+        self.hint = ""
+        self.guessed_letters = []
+        self.display_word = []
+        self.lives = 6
 
-def play_game():
-    word, category = get_random_word()
-    guessed_letters = set()
-    wrong_guesses = 0
-    max_guesses = len(HANGMAN_PICS) - 1
+        # Difficulty dropdown
+        self.difficulty_var = tk.StringVar(value="Easy")
+        self.dropdown = ttk.Combobox(root, textvariable=self.difficulty_var, values=["Easy", "Medium", "Hard"])
+        self.dropdown.pack(pady=10)
 
-    print("🎮 Welcome to Hangman!")
-    print(f"💡 Hint: It's from the category '{category}'.")
+        # Hint label
+        self.hint_label = tk.Label(root, text="Hint will appear here", bg="#f2f2f2", fg="#d35400", font=("Arial", 12))
+        self.hint_label.pack(pady=5)
 
-    while wrong_guesses < max_guesses:
-        print(HANGMAN_PICS[wrong_guesses])
-        print("Word: ", display_progress(word, guessed_letters))
-        guess = input("🔤 Enter a letter: ").lower()
+        # Word display
+        self.word_label = tk.Label(root, text="_ _ _ _", bg="#f2f2f2", fg="#333333", font=("Arial", 24))
+        self.word_label.pack(pady=10)
+
+        # Entry box
+        self.entry = tk.Entry(root, font=("Arial", 16), justify="center")
+        self.entry.pack(pady=10)
+        self.entry.bind("<Return>", self.check_guess)
+
+        # Guess button
+        self.guess_button = tk.Button(root, text="Guess", bg="#4a90e2", fg="white", font=("Arial", 12), command=self.check_guess)
+        self.guess_button.pack(pady=10)
+
+        # Message label
+        self.message_label = tk.Label(root, text="", bg="#f2f2f2", fg="#2c3e50", font=("Arial", 12))
+        self.message_label.pack(pady=5)
+
+        # Reset button
+        self.reset_button = tk.Button(root, text="🔁 Play Again", bg="#27ae60", fg="white", font=("Arial", 12), command=self.start_game)
+        self.reset_button.pack(pady=10)
+
+        self.start_game()
+
+    def start_game(self, event=None):
+        difficulty = self.difficulty_var.get()
+        self.word, self.hint = get_word_by_difficulty(difficulty)
+        self.guessed_letters = []
+        self.display_word = ["_" for _ in self.word]
+        self.lives = 6
+        self.update_display()
+        self.message_label.config(text="")
+        self.hint_label.config(text=f"💡 Hint: {self.hint}")
+        self.entry.config(state="normal")
+
+    def update_display(self):
+        self.word_label.config(text=" ".join(self.display_word))
+
+    def check_guess(self, event=None):
+        guess = self.entry.get().lower()
+        self.entry.delete(0, tk.END)
 
         if not guess.isalpha() or len(guess) != 1:
-            print("❗ Please enter a single letter.")
-            continue
+            self.message_label.config(text="❗ Enter a single letter.")
+            return
 
-        if guess in guessed_letters:
-            print("⚠️ You already guessed that letter.")
-        elif guess in word:
-            print("✅ Correct!")
-            guessed_letters.add(guess)
+        if guess in self.guessed_letters:
+            self.message_label.config(text="⚠️ Already guessed.")
+            return
+
+        self.guessed_letters.append(guess)
+
+        if guess in self.word:
+            for i, letter in enumerate(self.word):
+                if letter == guess:
+                    self.display_word[i] = guess
+            self.message_label.config(text="✅ Correct!")
         else:
-            print("❌ Wrong!")
-            wrong_guesses += 1
-            guessed_letters.add(guess)
+            self.lives -= 1
+            self.message_label.config(text=f"❌ Wrong! Lives left: {self.lives}")
 
-        if set(word).issubset(guessed_letters):
-            print(f"\n🎉 You won! The word was: {word}")
-            break
-    else:
-        print(HANGMAN_PICS[wrong_guesses])
-        print(f"\n💀 You lost! The word was: {word}")
+        self.update_display()
+
+        if "_" not in self.display_word:
+            self.message_label.config(text=f"🎉 You won! The word was: {self.word}")
+            self.entry.config(state="disabled")
+        elif self.lives == 0:
+            self.word_label.config(text=" ".join(list(self.word)))
+            self.message_label.config(text=f"💀 You lost! The word was: {self.word}")
+            self.entry.config(state="disabled")
 
 if __name__ == "__main__":
-    play_game()
+    root = tk.Tk()
+    app = HangmanGUI(root)
+    root.mainloop()
